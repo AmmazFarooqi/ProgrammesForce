@@ -80,8 +80,10 @@ if (!isset($_SESSION['email'])) {
     ?>
     
 </tbody>
-<a href="logout.php" class="btn btn-danger">Logout</a>
+
 </table>
+
+<a href="logout.php" class="btn btn-danger">Logout</a>
 <?php
         if(isset($_GET['message']))
         {

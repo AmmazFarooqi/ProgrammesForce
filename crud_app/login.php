@@ -50,7 +50,7 @@ include('dp_con.php');
 session_start();
 
 if (isset($_SESSION['email'])) {
-    header("location: http://localhost/crud_app/");
+    header("location: http://localhost/Tasks/crud_app/");
 }
 
 
@@ -66,7 +66,7 @@ if(isset($_POST['submit'])){
         $_SESSION['email'] = $row['email'];
         $_SESSION['role'] = $row['role'];
 
-        header("location: http://localhost/crud_app/");
+        header("location: http://localhost/Tasks/crud_app/");
     }
     else{
         echo "<script>alert('invalid email and password');</script>";
