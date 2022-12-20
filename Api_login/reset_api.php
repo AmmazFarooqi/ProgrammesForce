@@ -1,56 +1,38 @@
-<?php
+<?php include "config.php";
 
-//use LDAP\Result;
+header('Content-Type: application/json'); //3 party who access this api 
+header('Access-Control-Allow-Origin: *'); //*means all website access this api
+header('Access-Control-Allow-Methods: POST'); // use api POST method
 
-header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Headers: access");
-header("Access-Control-Allow-Methods: PUT");
-header("Content-Type: application/json; charset=UTF-8");
-header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
+$formData = stripcslashes(file_get_contents("php://input"));
+$data = json_decode($formData, true);
 
-include ('config.php');
-
-$data = json_decode(file_get_contents("php://input"),true);
-$returnData = [];
-
+// LOGIN CREDENTIALS
 $email = $data['email'];
-$password= $data['password'];
-$newPassword = $data['newPassword'];
+$newPassword = $data['password'];
+$encryptNewPassword = sha1($newPassword);
+$reEnterNewPassword = $data['password'];
+$encryptReNewPassword = sha1($reEnterNewPassword);
 
+// CHECK IF TOKEN IS SET AND LOGIN USER ID SET THEN DO PROCESS
+if (isset($_COOKIE['token']) && isset($_COOKIE['id'])) {
+    $query =  "SELECT email FROM login_form WHERE email = '$email'";
+    $result = mysqli_query($conn, $query) or die("Check User For Reset Password  Query Failed");
 
-if(!isset($data->email) || empty(trim($data->email)))
-{
-    $returnData = ( 'Please Fill in all Required Fields!.');
-}
-
-else
-{
-    //Email is a unique id.
-    $query = "SELECT * FROM users where email='$email' ";
-    $result = mysqli_query($con, $query);
-    $res=mysqli_fetch_assoc($result);
-
-    if($email==$res['email'] && password_verify($password,$res['password']))
-    {
-        $query = "UPDATE users SET password='$newPassword' WHERE email='$email' ";
-
-        $result = mysqli_query($conn, $query);
-
-        if($result)
-        {
-            $returnData = ( 'You have successfully reset.');
+    if ($newPassword == $reEnterNewPassword) {
+        if (mysqli_num_rows($result) > 0) {
+            $query = "UPDATE login_form SET password='$encryptNewPassword' WHERE email = '$email'";
+            if (mysqli_query($conn, $query)) {
+                echo json_encode(array('message' => 'Password Reset Successfully on email ' . $email, 'status' => 'true'));
+            } else {
+                echo json_encode(array('message' => 'New Password Not Set Successfully', 'status' => 'false'));
+            }
+        } else {
+            echo json_encode(array('message' => 'User Not found on email ' . $email, 'status' => 'false'));
         }
-        
-
+    } else {
+        echo json_encode(array('message' => 'Password And Re-enter Password Not Match', 'status' => 'false'));
     }
-    else
-    {
-        $returnData = ( 'Please enter the correct email and password.');
-
-    }
-
-
+} else {
+    echo json_encode(array('message' => 'Unauthorize User', 'status' => 'false'));
 }
-
-echo json_encode($returnData);
-?>
